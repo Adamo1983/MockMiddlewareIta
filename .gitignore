@@ -1,0 +1,82 @@
+# Visual Studio specific
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userprefs
+*.lock.json
+
+# Rider / JetBrains
+.idea/
+
+# Visual Studio Code
+.vscode/
+
+# Backup / temp files
+*~
+*.tmp
+*.temp
+*.log
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# .NET Core / .NET 5+ specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Windows Imaging Component cache
+*.wincache
+
+# Publish output
+/publish/
+
+# Test results
+TestResults/
+*.trx
+
+# Profiling files
+*.vsp
+*.psess
+
+# StyleCop / ReSharper
+_Resharper*/
+*.DotSettings.user
+
+# Visual Studio cache files
+*.vcxproj.user
+*.vcxproj.filters
+
+# Mono / Xamarin
+*.pidb
+*.userprefs
+
+# Database
+*.mdf
+*.ldf
+*.sdf
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# ClickOnce
+*.publish
+*.pubxml.user
