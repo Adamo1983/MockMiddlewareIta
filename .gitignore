@@ -5,6 +5,9 @@
 *.userosscache
 *.sln.docstates
 
+#Claude
+*.claude
+
 # Build results
 bin/
 obj/
