@@ -178,6 +178,7 @@ public class MainForm : Form
         Controls.Add(topPanel);
 
         FormClosing += OnFormClosing;
+        Load += (_, _) => OnStartClick(this, EventArgs.Empty);
     }
 
     private void OnStartClick(object? sender, EventArgs e)
