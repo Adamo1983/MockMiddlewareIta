@@ -161,6 +161,7 @@ public class MainForm : Form, IMockCallbacks
         _txListView.Columns.Add("Totale", 80, HorizontalAlignment.Right);
         _txListView.Columns.Add("ADE/SQ", 160, HorizontalAlignment.Left);
         _txListView.Columns.Add("ReceiptRecordId", 280, HorizontalAlignment.Left);
+        _txListView.Columns.Add("Data", 80, HorizontalAlignment.Center);
         _txListView.Columns.Add("Ora", 70, HorizontalAlignment.Center);
         _txListView.Columns.Add("Ref. Originale", 80, HorizontalAlignment.Center);
 
@@ -315,7 +316,9 @@ public class MainForm : Form, IMockCallbacks
         item.SubItems.Add($"{tx.TotalAmount:F2}");
         item.SubItems.Add(tx.AdeProgressiveNumber ?? "");
         item.SubItems.Add(tx.ReceiptRecordId ?? "");
-        item.SubItems.Add(DateTime.Now.ToString("HH:mm:ss"));
+        var now = DateTime.Now;
+        item.SubItems.Add(now.ToString("dd/MM/yyyy"));
+        item.SubItems.Add(now.ToString("HH:mm:ss"));
 
         string refText = "";
         if (tx.OriginalReceiptRecordId != null)
