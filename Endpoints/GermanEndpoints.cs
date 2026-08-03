@@ -165,7 +165,8 @@ public static class GermanEndpoints
 
         var tx = new StoredTransaction
         {
-            Type = "RECEIPT",
+            // Austria: lo storno arriva come Tra con AT_Storno="1" (niente TraS, niente TID)
+            Type = request.IsAustrianCancellation ? "VOID" : "RECEIPT",
             Status = "REGISTERED",
             DocumentNumber = docNumber,
             ReceiptRecordId = sq.ToString(),
@@ -179,7 +180,10 @@ public static class GermanEndpoints
         cb.AddTransactionToList(tx);
 
         var env = request.IsTraining ? "TRAINING" : "LIVE";
-        cb.Log($"  RECEIPT [{env}] SQ={sq}, docNum={docNumber}, total={request.Total:F2}, TID={request.TransactionId}", Color.FromArgb(80, 200, 120));
+        var kind = request.IsAustrianCancellation ? "AT_STORNO" : "RECEIPT";
+        var idInfo = request.TransactionId != null ? $"TID={request.TransactionId}" : $"TN={request.TransactionNumber?.ToString() ?? "null"}";
+        cb.Log($"  {kind} [{env}] SQ={sq}, docNum={docNumber}, total={request.Total:F2}, {idInfo}",
+            request.IsAustrianCancellation ? Color.FromArgb(220, 120, 220) : Color.FromArgb(80, 200, 120));
 
         if (request.Positions.Count > 0)
             cb.Log($"         {request.Positions.Count} posizioni, {request.Payments.Count} pagamenti, {request.Taxes.Count} tasse", Color.FromArgb(120, 170, 120));

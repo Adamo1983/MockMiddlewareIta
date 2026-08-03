@@ -41,6 +41,9 @@ public static class MockServerBuilder
 
         RegisterSharedEndpoints(app, port, language, store);
 
+        // Austria usa lo stesso protocollo XML EFR della Germania (endpoint /register,
+        // /register/void, /retrieve...): cambiano solo il payload che manda Giano e il
+        // <Country> di /state, non gli endpoint.
         if (language == MockLanguage.Italian)
             ItalianEndpoints.Register(app, store, cb);
         else
@@ -51,7 +54,12 @@ public static class MockServerBuilder
 
     private static void RegisterSharedEndpoints(WebApplication app, int port, MockLanguage language, TransactionStore store)
     {
-        var langName = language == MockLanguage.Italian ? "Fiskaly (IT)" : "Efsta/EFR (DE)";
+        var langName = language switch
+        {
+            MockLanguage.Italian => "Fiskaly (IT)",
+            MockLanguage.German => "Efsta/EFR (DE)",
+            _ => "Efsta/EFR (AT)"
+        };
 
         // GET / - Dashboard HTML
         app.MapGet("/", () =>
@@ -112,9 +120,29 @@ public static class MockServerBuilder
             var formattedDate = now.ToString("yyyy-MM-dd'T'HH:mm:ss");
             var pid = System.Diagnostics.Process.GetCurrentProcess().Id;
             var uptime = (long)(DateTime.UtcNow - System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime()).TotalSeconds;
-            var countryCode = language == MockLanguage.Italian ? "IT" : "DE";
+            var countryCode = language switch
+            {
+                MockLanguage.Italian => "IT",
+                MockLanguage.German => "DE",
+                _ => "AT"
+            };
+
             var mockName = language == MockLanguage.Italian ? "Fiskaly Mock Middleware" : "Efsta EFR Mock";
-            var manifestText = language == MockLanguage.Italian ? "Fiskaly Mock for Italy" : "EFR Mock for Germany";
+
+            var manifestText = language switch
+            {
+                MockLanguage.Italian => "Fiskaly Mock for Italy",
+                MockLanguage.German => "EFR Mock for Germany",
+                _ => "EFR Mock for Austria"
+            };
+
+            // In Austria Giano pretende una smart card installata OPPURE la company di test
+            // efsta ATU57780814 (EfrClient.TestCloudCompanyId), altrimenti il test EFR
+            // all'avvio fallisce e la finalizzazione tenta un riavvio del servizio.
+            // Il formato di ogni voce <SC> e' "TaxId:Identifier:Serial": esattamente 3 campi,
+            // altrimenti Giano mette la lista a null e va in NullReference in finalizzazione.
+            var company = language == MockLanguage.Austrian ? "ATU57780814" : "";
+            var smartCards = language == MockLanguage.Austrian ? "ATU57780814:AT0:MOCK0000000001" : "";
 
             var xml = $"""
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -127,7 +155,7 @@ public static class MockServerBuilder
                   <uptime>{uptime}</uptime>
                   <Online>true</Online>
                   <Recorder>online</Recorder>
-                  <Company></Company>
+                  <Company>{company}</Company>
                   <EFR></EFR>
                   <RN>01</RN>
                   <RecSent>0</RecSent>
@@ -135,7 +163,7 @@ public static class MockServerBuilder
                   <RetryQueued>0</RetryQueued>
                   <TimeOffset>0</TimeOffset>
                   <D>{formattedDate}</D>
-                  <SC></SC>
+                  <SC>{smartCards}</SC>
                   <DiskUsage>0.0</DiskUsage>
                   <DiskQuota>1000000000</DiskQuota>
                 </state>

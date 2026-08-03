@@ -39,6 +39,10 @@ public class EfrTransactionRequest
     public string? OperatorName { get; set; }
     public bool IsTraining { get; set; }
     public bool IsVoid { get; set; }
+    /// <summary>Austria: attributo AT_Storno="1" (storno RKSV, mandato dentro il Tra).</summary>
+    public bool IsAustrianCancellation { get; set; }
+    /// <summary>Austria: attributo TN (numero transazione, in Germania non viene mandato).</summary>
+    public int? TransactionNumber { get; set; }
     public string? ReferenceNumber { get; set; }
     public string? LocationId { get; set; }
     public string? TerminalId { get; set; }
@@ -69,7 +73,13 @@ public class EfrTransactionRequest
         req.OperatorName = esrNode.Attributes?["OprN"]?.InnerText;
         req.IsTraining = esrNode.Attributes?["NFS"]?.InnerText == "TRAINING";
         req.IsVoid = esrNode.Attributes?["Void"]?.InnerText == "1";
+        req.IsAustrianCancellation = esrNode.Attributes?["AT_Storno"]?.InnerText == "1";
         req.ReferenceNumber = esrNode.Attributes?["RFN"]?.InnerText;
+
+        var tnStr = esrNode.Attributes?["TN"]?.InnerText;
+        if (tnStr != null && int.TryParse(tnStr, out var tn))
+            req.TransactionNumber = tn;
+
         req.LocationId = esrNode.Attributes?["TL"]?.InnerText;
         req.TerminalId = esrNode.Attributes?["TT"]?.InnerText;
 

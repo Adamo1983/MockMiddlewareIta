@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 
 namespace FiskalyMock;
 
-public enum MockLanguage { Italian, German }
+public enum MockLanguage { Italian, German, Austrian }
 
 public class MainForm : Form, IMockCallbacks
 {
@@ -19,6 +19,7 @@ public class MainForm : Form, IMockCallbacks
     private readonly SplitContainer _splitContainer;
     private readonly RadioButton _radioIT;
     private readonly RadioButton _radioDE;
+    private readonly RadioButton _radioAT;
     private readonly TextBox _portTextBox;
 
     // Server state
@@ -32,7 +33,16 @@ public class MainForm : Form, IMockCallbacks
     public int NextSequenceNumber() => Interlocked.Increment(ref _efrSequenceNumber);
 
     private MockLanguage SelectedLanguage =>
-        _radioDE.Checked ? MockLanguage.German : MockLanguage.Italian;
+        _radioDE.Checked ? MockLanguage.German
+        : _radioAT.Checked ? MockLanguage.Austrian
+        : MockLanguage.Italian;
+
+    private static string LanguageDescription(MockLanguage language) => language switch
+    {
+        MockLanguage.Italian => "IT (Fiskaly)",
+        MockLanguage.German => "DE (Efsta/EFR)",
+        _ => "AT (Efsta/EFR)"
+    };
 
     public MainForm()
     {
@@ -78,15 +88,27 @@ public class MainForm : Form, IMockCallbacks
             Font = new Font("Segoe UI", 9.5f)
         };
 
+        var atFlag = new PictureBox
+        {
+            Image = new Bitmap(Image.FromFile(Path.Combine(AppContext.BaseDirectory, "Images", "AustrianFlag.png")), flagSize),
+            Size = flagSize, Location = new Point(228, 12), SizeMode = PictureBoxSizeMode.StretchImage
+        };
+
+        _radioAT = new RadioButton
+        {
+            Text = "AT", AutoSize = true, Location = new Point(248, 10),
+            Font = new Font("Segoe UI", 9.5f)
+        };
+
         var portLabel = new Label
         {
-            Text = "Porta:", AutoSize = true, Location = new Point(260, 12),
+            Text = "Porta:", AutoSize = true, Location = new Point(320, 12),
             Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = Color.FromArgb(60, 60, 60)
         };
 
         _portTextBox = new TextBox
         {
-            Text = "8180", Size = new Size(60, 26), Location = new Point(310, 9),
+            Text = "8180", Size = new Size(60, 26), Location = new Point(370, 9),
             Font = new Font("Segoe UI", 9.5f), TextAlign = HorizontalAlignment.Center, MaxLength = 5
         };
         _portTextBox.KeyPress += (_, e) => { if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar)) e.Handled = true; };
@@ -94,11 +116,12 @@ public class MainForm : Form, IMockCallbacks
         // Collegati dopo _portTextBox per evitare warning CS8602
         _radioIT.CheckedChanged += (s, _) => { if (s is RadioButton rb && rb.Checked && _webApp == null) _portTextBox.Text = "8180"; };
         _radioDE.CheckedChanged += (s, _) => { if (s is RadioButton rb && rb.Checked && _webApp == null) _portTextBox.Text = "5618"; };
+        _radioAT.CheckedChanged += (s, _) => { if (s is RadioButton rb && rb.Checked && _webApp == null) _portTextBox.Text = "5618"; };
 
         _sendMessageCheckBox = new CheckBox
         {
             Text = "Invia messaggio nella risposta", Checked = true, AutoSize = true,
-            Location = new Point(400, 11), ForeColor = Color.FromArgb(80, 80, 80), Font = new Font("Segoe UI", 8.5f)
+            Location = new Point(460, 11), ForeColor = Color.FromArgb(80, 80, 80), Font = new Font("Segoe UI", 8.5f)
         };
 
         // Row 2: Buttons + Status
@@ -139,7 +162,7 @@ public class MainForm : Form, IMockCallbacks
 
         topPanel.Controls.AddRange(new Control[]
         {
-            langLabel, itFlag, _radioIT, deFlag, _radioDE, portLabel, _portTextBox, _sendMessageCheckBox,
+            langLabel, itFlag, _radioIT, deFlag, _radioDE, atFlag, _radioAT, portLabel, _portTextBox, _sendMessageCheckBox,
             _startButton, _stopButton, _clearButton, _statusLabel, _counterLabel
         });
 
@@ -215,6 +238,7 @@ public class MainForm : Form, IMockCallbacks
         _startButton.Enabled = false;
         _radioIT.Enabled = false;
         _radioDE.Enabled = false;
+        _radioAT.Enabled = false;
         _portTextBox.Enabled = false;
         _store = new TransactionStore();
         _txListView.Items.Clear();
@@ -227,7 +251,7 @@ public class MainForm : Form, IMockCallbacks
             _ = _webApp.StartAsync(_cts.Token);
 
             _stopButton.Enabled = true;
-            var lang = SelectedLanguage == MockLanguage.Italian ? "IT (Fiskaly)" : "DE (Efsta/EFR)";
+            var lang = LanguageDescription(SelectedLanguage);
             _statusLabel.Text = $"  Listening on :{port} [{lang}]";
             _statusLabel.ForeColor = Color.FromArgb(46, 139, 87);
             Log($"SERVER AVVIATO sulla porta {port} - Modalita: {lang}", Color.FromArgb(80, 200, 120));
@@ -240,6 +264,7 @@ public class MainForm : Form, IMockCallbacks
             _startButton.Enabled = true;
             _radioIT.Enabled = true;
             _radioDE.Enabled = true;
+            _radioAT.Enabled = true;
             _portTextBox.Enabled = true;
             Log($"ERRORE AVVIO: {ex.Message}", Color.Red);
         }
@@ -252,6 +277,7 @@ public class MainForm : Form, IMockCallbacks
         _startButton.Enabled = true;
         _radioIT.Enabled = true;
         _radioDE.Enabled = true;
+        _radioAT.Enabled = true;
         _portTextBox.Enabled = true;
         _statusLabel.Text = "  Stopped";
         _statusLabel.ForeColor = Color.Gray;
